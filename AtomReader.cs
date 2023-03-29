@@ -1,220 +1,152 @@
-using System.Diagnostics.CodeAnalysis;
+#if !NET6_0_OR_GREATER
+using System;
+using System.Collections.Generic;
+using System.IO;
+#endif
 
-namespace AtomReaderNet;
-
-/// <summary>
-/// Represents a character and its position in a file. Note that any equality comparison will ignore line and column values, and only compare char values
-/// </summary
-public struct Atom
+namespace AtomReaderNet
 {
-    public int Line { get; }
-    public int Column { get; }
-    public char Value { get; }
-
-    public Atom(int line, int column, char value)
+    /// <summary>
+    /// A utility class for forward-only reading of characters from a source
+    /// </summary>
+    public sealed class AtomReader : IDisposable
     {
-        Line = line;
-        Column = column;
-        Value = value;
-    }
+        /// <summary>
+        /// Returns true of the reader has reached the end of the data
+        /// </summary>
+        public bool EndOfStream => cache.Count == 0 && source.Peek() == -1;
 
-    public bool IsWhiteSpace => char.IsWhiteSpace(Value);
-    public bool IsNumber => char.IsNumber(Value);
-    public bool IsAscii => char.IsAscii(Value);
-    public bool IsDigit => char.IsDigit(Value);
-    public bool IsLetter => char.IsLetter(Value);
-    public bool IsLower => char.IsLower(Value);
-    public bool IsUpper => char.IsUpper(Value);
+        private readonly Queue<Atom> cache = new Queue<Atom>();
+        private int line;
+        private int column;
 
-    public bool IsBetween(char lowerBound, char upperBound) =>
-        char.IsBetween(Value, lowerBound, upperBound);
+        private readonly TextReader source;
 
-    public Atom ToLower() => new(Line, Column, char.ToLower(Value));
-
-    public Atom ToUpper() => new(Line, Column, char.ToUpper(Value));
-
-    public override int GetHashCode()
-    {
-        return Value.GetHashCode();
-    }
-
-    public override bool Equals([NotNullWhen(true)] object? obj)
-    {
-        return (obj is Atom a && a.Value == Value) || (obj is char c && c == this);
-    }
-
-    public override string ToString()
-    {
-        return $"{Value} ({Column}@{Line})";
-    }
-
-    public static implicit operator char(Atom a) => a.Value;
-
-    public static bool operator ==(Atom a, Atom b) => a.Value == b.Value;
-
-    public static bool operator !=(Atom a, Atom b) => a.Value != b.Value;
-
-    public static bool operator ==(Atom a, char c) => a.Value == c;
-
-    public static bool operator !=(Atom a, char c) => a.Value != c;
-}
-
-public class AtomString
-{
-    public int FromLine { get; } = -1;
-    public int FromColumn { get; } = -1;
-    public int ToLine { get; } = -1;
-    public int ToColumn { get; } = -1;
-
-    private Atom[] chars;
-
-    public AtomString(IEnumerable<Atom> atoms)
-    {
-        chars = atoms.ToArray();
-
-        if (chars.Length > 0)
+        /// <summary>
+        /// Constructs a reader from a given string
+        /// </summary>
+        public AtomReader(string source)
         {
-            FromLine = chars[0].Line;
-            FromColumn = chars[0].Column;
-
-            ToLine = chars[^1].Line;
-            ToColumn = chars[^1].Column;
+            this.source = new StringReader(source);
         }
-    }
 
-    public int Length => chars.Length;
-
-    public override int GetHashCode()
-    {
-        return ((string)this).GetHashCode();
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return (obj is AtomString a && a == this) || (obj is string s && s == this);
-    }
-
-    public override string ToString()
-    {
-        return (string)this;
-    }
-
-    public static implicit operator string(AtomString s) =>
-        new string(s.chars.Select(c => c.Value).ToArray());
-
-    public static bool operator ==(AtomString a, AtomString b) => ((string)a) == ((string)b);
-
-    public static bool operator !=(AtomString a, AtomString b) => !(a == b);
-
-    public static bool operator ==(AtomString a, string b) => ((string)a) == b;
-
-    public static bool operator !=(AtomString a, string b) => !(a == b);
-}
-
-public class AtomReader : IDisposable
-{
-    public bool EndOfStream => cache.Count == 0 && source.Peek() == -1;
-
-    private Queue<Atom> cache = new();
-    private int line;
-    private int column;
-
-    private readonly TextReader source;
-
-    public AtomReader(string source)
-    {
-        this.source = new StringReader(source);
-    }
-
-    public AtomReader(Stream source)
-    {
-        this.source = new StreamReader(source);
-    }
-
-    public AtomReader(TextReader source)
-    {
-        this.source = source;
-    }
-
-    public Atom Peek()
-    {
-        EnsureCache();
-        return cache.Peek();
-    }
-
-    public Atom Read()
-    {
-        EnsureCache();
-        return cache.Dequeue();
-    }
-
-    public AtomReader Precache()
-    {
-        EnsureCache();
-        return this;
-    }
-
-    public IEnumerable<Atom> ReadToEnd()
-    {
-        while (!EndOfStream)
+        /// <summary>
+        /// Constructs a reader from a given Stream
+        /// </summary>
+        public AtomReader(Stream source)
         {
-            yield return Read();
+            this.source = new StreamReader(source);
         }
-    }
 
-    public IEnumerable<Atom> ReadLine()
-    {
-        while (!EndOfStream)
+        /// <summary>
+        /// Constructs a reader from a given TextReader
+        /// </summary>
+        public AtomReader(TextReader source)
         {
-            var next = Read();
-            yield return next;
-            if (next == '\r' || next == '\n')
+            this.source = source;
+        }
+
+        /// <summary>
+        /// Peeks the next Atom from the reader
+        /// </summary>
+        /// <exception cref="EndOfStream">Thrown if attempting to read past the end of data</exception>
+        public Atom Peek()
+        {
+            EnsureCache();
+            return cache.Peek();
+        }
+
+        /// <summary>
+        /// Reads the next Atom from the reader
+        /// </summary>
+        /// <exception cref="EndOfStream">Thrown if attempting to read past the end of data</exception>
+        public Atom Read()
+        {
+            EnsureCache();
+            return cache.Dequeue();
+        }
+
+        /// <summary>
+        /// Ensures that a chunk of characters are read and cached from the source
+        /// </summary>
+        /// <exception cref="EndOfStream">Thrown if attempting to read past the end of data</exception>
+        public AtomReader Precache()
+        {
+            EnsureCache();
+            return this;
+        }
+
+        /// <summary>
+        /// Read all remaining Atoms
+        /// </summary>
+        /// <exception cref="EndOfStream">Thrown if attempting to read past the end of data</exception>
+        public IEnumerable<Atom> ReadToEnd()
+        {
+            while (!EndOfStream)
             {
-                if (next == '\r' && !EndOfStream && Peek() == '\n')
-                {
-                    yield return Read();
-                }
-
-                yield break;
+                yield return Read();
             }
         }
-    }
 
-    private void EnsureCache()
-    {
-        if (cache.Count > 0)
+        /// <summary>
+        /// Read all remaining Atoms until next CR, LF, or CRLF character(s). The end-of-line characters will be included
+        /// </summary>
+        /// <exception cref="EndOfStream">Thrown if attempting to read past the end of data</exception>
+        public IEnumerable<Atom> ReadLine()
         {
-            return;
-        }
-
-        if (EndOfStream)
-        {
-            throw new EndOfStreamException();
-        }
-
-        var buffer = new char[4096];
-
-        var read = source.ReadBlock(buffer, 0, buffer.Length);
-        for (var i = 0; i < read; i++)
-        {
-            cache.Enqueue(new(line, column, buffer[i]));
-            column++;
-
-            if (buffer[i] == '\r' || buffer[i] == '\n')
+            while (!EndOfStream)
             {
-                if (buffer[i] == '\r' && i < buffer.Length - 1 && buffer[i + 1] == '\n')
+                var next = Read();
+                yield return next;
+                if (next == '\r' || next == '\n')
                 {
-                    cache.Enqueue(new(line, column, buffer[++i]));
-                }
+                    if (next == '\r' && !EndOfStream && Peek() == '\n')
+                    {
+                        yield return Read();
+                    }
 
-                line++;
-                column = 0;
+                    yield break;
+                }
             }
         }
-    }
 
-    public void Dispose()
-    {
-        ((IDisposable)source).Dispose();
+        private void EnsureCache()
+        {
+            if (cache.Count > 0)
+            {
+                return;
+            }
+
+            if (EndOfStream)
+            {
+                throw new EndOfStreamException();
+            }
+
+            var buffer = new char[4096];
+
+            var read = source.ReadBlock(buffer, 0, buffer.Length);
+            for (var i = 0; i < read; i++)
+            {
+                cache.Enqueue(new Atom(line, column, buffer[i]));
+                column++;
+
+                if (buffer[i] == '\r' || buffer[i] == '\n')
+                {
+                    if (buffer[i] == '\r' && i < buffer.Length - 1 && buffer[i + 1] == '\n')
+                    {
+                        cache.Enqueue(new Atom(line, column, buffer[++i]));
+                    }
+
+                    line++;
+                    column = 0;
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            ((IDisposable)source).Dispose();
+        }
     }
 }
