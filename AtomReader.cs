@@ -16,6 +16,16 @@ namespace AtomReaderNet
         /// </summary>
         public bool EndOfStream => cache.Count == 0 && source.Peek() == -1;
 
+        /// <summary>
+        /// Returns the number of characters read (this far)
+        /// </summary>
+        public int ReadCount { get; private set; }
+
+        /// <summary>
+        /// Sets the buffer size used for reading, defaults to 4096
+        /// </summary>
+        public int BufferSize { get; set; } = 4096;
+
         private readonly Queue<Atom> cache = new Queue<Atom>();
         private int line;
         private int column;
@@ -49,7 +59,7 @@ namespace AtomReaderNet
         /// <summary>
         /// Peeks the next Atom from the reader
         /// </summary>
-        /// <exception cref="EndOfStream">Thrown if attempting to read past the end of data</exception>
+        /// <exception cref="EndOfStreamException">Thrown if attempting to read past the end of data</exception>
         public Atom Peek()
         {
             EnsureCache();
@@ -59,9 +69,10 @@ namespace AtomReaderNet
         /// <summary>
         /// Reads the next Atom from the reader
         /// </summary>
-        /// <exception cref="EndOfStream">Thrown if attempting to read past the end of data</exception>
+        /// <exception cref="EndOfStreamException">Thrown if attempting to read past the end of data</exception>
         public Atom Read()
         {
+            ReadCount++;
             EnsureCache();
             return cache.Dequeue();
         }
@@ -69,7 +80,7 @@ namespace AtomReaderNet
         /// <summary>
         /// Ensures that a chunk of characters are read and cached from the source
         /// </summary>
-        /// <exception cref="EndOfStream">Thrown if attempting to read past the end of data</exception>
+        /// <exception cref="EndOfStreamException">Thrown if attempting to read past the end of data</exception>
         public AtomReader Precache()
         {
             EnsureCache();
@@ -79,7 +90,7 @@ namespace AtomReaderNet
         /// <summary>
         /// Read all remaining Atoms
         /// </summary>
-        /// <exception cref="EndOfStream">Thrown if attempting to read past the end of data</exception>
+        /// <exception cref="EndOfStreamException">Thrown if attempting to read past the end of data</exception>
         public IEnumerable<Atom> ReadToEnd()
         {
             while (!EndOfStream)
@@ -91,7 +102,7 @@ namespace AtomReaderNet
         /// <summary>
         /// Read all remaining Atoms until next CR, LF, or CRLF character(s). The end-of-line characters will be included
         /// </summary>
-        /// <exception cref="EndOfStream">Thrown if attempting to read past the end of data</exception>
+        /// <exception cref="EndOfStreamException">Thrown if attempting to read past the end of data</exception>
         public IEnumerable<Atom> ReadLine()
         {
             while (!EndOfStream)
@@ -122,7 +133,7 @@ namespace AtomReaderNet
                 throw new EndOfStreamException();
             }
 
-            var buffer = new char[4096];
+            var buffer = new char[BufferSize];
 
             var read = source.ReadBlock(buffer, 0, buffer.Length);
             for (var i = 0; i < read; i++)
