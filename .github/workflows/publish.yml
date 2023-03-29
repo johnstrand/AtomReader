@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Test
-      run: ls -R
+      run: ls -R ..
     - name: Package
       run: dotnet pack -c Release -o .
     - name: Publish
