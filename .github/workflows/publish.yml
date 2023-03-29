@@ -5,6 +5,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+    - name: Test
+      run: ls; pwd
     - name: Package
       run: dotnet pack -c Release -o .
     - name: Publish
