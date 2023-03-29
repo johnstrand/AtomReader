@@ -1,8 +1,5 @@
 name: publish to nuget
-on:
-  push:
-    branches:
-      - main # Default release branch, may also be named 'master' or 'develop'
+on: workflow_dispatch
 jobs:
   publish:
     name: build, pack & publish
@@ -24,7 +21,7 @@ jobs:
           PROJECT_FILE_PATH: AtomReader.csproj
 
           # Configuration to build and package
-          BUILD_CONFIGURATION: Release
+          # BUILD_CONFIGURATION: Release
 
           # Platform target to compile (default is empty/AnyCPU)
           # BUILD_PLATFORM: x64
