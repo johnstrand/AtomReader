@@ -5,8 +5,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-    - name: Test
-      run: ls -R ..
+    - name: Checkout
+      uses: actions/checkout@v2.7.0
     - name: Package
       run: dotnet pack -c Release -o .
     - name: Publish
