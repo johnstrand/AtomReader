@@ -25,4 +25,8 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="AtomReader.Tests" />
+	</ItemGroup>
+
 </Project>
