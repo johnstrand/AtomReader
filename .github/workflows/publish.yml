@@ -7,9 +7,11 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2.7.0
+    - name: Test
+      run: dotnet test -c Release
     - name: Build
-      run: dotnet build -c Release
+      run: dotnet build src/AtomReader/AtomReader.csproj -c Release
     - name: Package
-      run: dotnet pack -c Release -o .
+      run: dotnet pack src/AtomReader/AtomReader.csproj -c Release -o .
     - name: Publish
       run: dotnet nuget push **/*.nupkg -s 'https://api.nuget.org/v3/index.json' -k '${{ secrets.NUGET_API_KEY }}'  --skip-duplicate
