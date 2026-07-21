@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AtomReader/AtomReader.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/AtomReader.Tests/AtomReader.Tests.csproj" />
+  </Folder>
+</Solution>
