@@ -88,16 +88,37 @@ namespace AtomReaderNet
         /// <summary>
         /// Converts the AtomString instance to a string
         /// </summary>
-        public static implicit operator string(AtomString s) =>
-            new string(s.chars.Select(c => c.Value).ToArray());
+        public static implicit operator string(AtomString s)
+        {
+#if NET6_0_OR_GREATER
+            return string.Create(s.chars.Length, s, (span, state) =>
+            {
+                for (int i = 0; i < span.Length; i++)
+                {
+                    span[i] = state.chars[i].Value;
+                }
+            });
+#else
+            return new string((char[])s);
+#endif
+        }
 
         /// <summary>
         /// Converts the AtomString instance to a char array
         /// </summary>
-        public static implicit operator char[](AtomString s) => s.chars.Select(c => c.Value).ToArray();
+        public static implicit operator char[](AtomString s)
+        {
+            var result = new char[s.chars.Length];
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = s.chars[i].Value;
+            }
+
+            return result;
+        }
 
         /// <summary>
-        /// Compares both instances character by character
+        /// Compares two instances without string allocations
         /// </summary>
         public static bool operator ==(AtomString a, AtomString b)
         {
@@ -106,10 +127,7 @@ namespace AtomReaderNet
             if (a.chars.Length != b.chars.Length) return false;
             for (int i = 0; i < a.chars.Length; i++)
             {
-                if (a.chars[i].Value != b.chars[i].Value)
-                {
-                    return false;
-                }
+                if (a.chars[i].Value != b.chars[i].Value) return false;
             }
             return true;
         }
@@ -120,19 +138,16 @@ namespace AtomReaderNet
         public static bool operator !=(AtomString a, AtomString b) => !(a == b);
 
         /// <summary>
-        /// Compares the AtomString instance to a string character by character
+        /// Compares the AtomString instance with the other string without string allocation
         /// </summary>
         public static bool operator ==(AtomString a, string b)
         {
-            if (a is null) return b is null;
-            if (b is null) return false;
+            if (a is null && b is null) return true;
+            if (a is null || b is null) return false;
             if (a.chars.Length != b.Length) return false;
             for (int i = 0; i < a.chars.Length; i++)
             {
-                if (a.chars[i].Value != b[i])
-                {
-                    return false;
-                }
+                if (a.chars[i].Value != b[i]) return false;
             }
             return true;
         }
