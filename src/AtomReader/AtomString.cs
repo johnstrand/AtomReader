@@ -66,7 +66,24 @@ namespace AtomReaderNet
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return ((string)this).GetHashCode();
+#if NET6_0_OR_GREATER
+            var hash = new HashCode();
+            foreach (var c in chars)
+            {
+                hash.Add(c.Value);
+            }
+            return hash.ToHashCode();
+#else
+            unchecked
+            {
+                int hash = 17;
+                foreach (var c in chars)
+                {
+                    hash = hash * 31 + c.Value.GetHashCode();
+                }
+                return hash;
+            }
+#endif
         }
 
         /// <inheritdoc/>
