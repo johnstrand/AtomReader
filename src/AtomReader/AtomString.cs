@@ -88,13 +88,38 @@ namespace AtomReaderNet
         /// <summary>
         /// Converts the AtomString instance to a string
         /// </summary>
-        public static implicit operator string(AtomString s) =>
-            new string(s.chars.Select(c => c.Value).ToArray());
+        public static implicit operator string(AtomString s)
+        {
+#if NETSTANDARD2_0
+            var charArray = new char[s.chars.Length];
+            for (int i = 0; i < s.chars.Length; i++)
+            {
+                charArray[i] = s.chars[i].Value;
+            }
+            return new string(charArray);
+#else
+            return string.Create(s.chars.Length, s.chars, (span, state) =>
+            {
+                for (int i = 0; i < span.Length; i++)
+                {
+                    span[i] = state[i].Value;
+                }
+            });
+#endif
+        }
 
         /// <summary>
         /// Converts the AtomString instance to a char array
         /// </summary>
-        public static implicit operator char[](AtomString s) => s.chars.Select(c => c.Value).ToArray();
+        public static implicit operator char[](AtomString s)
+        {
+            var charArray = new char[s.chars.Length];
+            for (int i = 0; i < s.chars.Length; i++)
+            {
+                charArray[i] = s.chars[i].Value;
+            }
+            return charArray;
+        }
 
         /// <summary>
         /// Converts both instances to string and compares them
