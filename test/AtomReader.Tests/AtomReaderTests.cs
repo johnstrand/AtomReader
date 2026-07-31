@@ -120,6 +120,15 @@ public class AtomReaderTests
     }
 
     [TestMethod]
+    public void Peek_ThrowsEndOfStreamException_WhenEmpty()
+    {
+        var input = "";
+        using var reader = new AtomReaderNet.AtomReader(input);
+
+        Assert.ThrowsExactly<EndOfStreamException>(() => reader.Peek());
+    }
+
+    [TestMethod]
     public void ReadToEnd_ReadsRemainingAtoms()
     {
         var input = "hello";
