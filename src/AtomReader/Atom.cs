@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AtomReaderNet
 {
@@ -42,12 +42,10 @@ namespace AtomReaderNet
         /// </summary>
         public bool IsNumber => char.IsNumber(Value);
 
-#if NET6_0_OR_GREATER
         /// <summary>
         /// Returns true if the Atom represents an ASCII value
         /// </summary>
         public bool IsAscii => char.IsAscii(Value);
-#endif
 
         /// <summary>
         /// Returns true if the Atom represents a digit
@@ -69,14 +67,11 @@ namespace AtomReaderNet
         /// </summary>
         public bool IsUpper => char.IsUpper(Value);
 
-#if NET7_0_OR_GREATER
-
         /// <summary>
         /// Returns true if the Atom is at or within the bounds
         /// </summary>
         public bool IsBetween(char lowerBound, char upperBound) =>
             char.IsBetween(Value, lowerBound, upperBound);
-#endif
 
         /// <summary>
         /// Converts the atom to lower case, with the same line and column as the original
@@ -96,11 +91,7 @@ namespace AtomReaderNet
         }
 
         /// <inheritdoc/>
-#if NET6_0_OR_GREATER
         public override bool Equals([NotNullWhen(true)] object? obj)
-#else
-        public override bool Equals(object obj)
-#endif
         {
             return (obj is Atom a && a.Value == Value) || (obj is char c && c == this);
         }

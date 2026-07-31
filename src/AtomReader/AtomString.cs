@@ -1,8 +1,6 @@
-#if !NET6_0_OR_GREATER
 using System;
 using System.Linq;
 using System.Collections.Generic;
-#endif
 
 namespace AtomReaderNet
 {
@@ -49,13 +47,8 @@ namespace AtomReaderNet
             FromLine = chars[0].Line;
             FromColumn = chars[0].Column;
 
-#if NETSTANDARD2_0
-            ToLine = chars[chars.Length - 1].Line;
-            ToColumn = chars[chars.Length - 1].Column;
-#else
             ToLine = chars[^1].Line;
             ToColumn = chars[^1].Column;
-#endif
         }
 
         /// <summary>
@@ -66,32 +59,16 @@ namespace AtomReaderNet
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-#if NET6_0_OR_GREATER
             var hash = new HashCode();
             foreach (var c in chars)
             {
                 hash.Add(c.Value);
             }
             return hash.ToHashCode();
-#else
-            unchecked
-            {
-                int hash = 17;
-                foreach (var c in chars)
-                {
-                    hash = hash * 31 + c.Value.GetHashCode();
-                }
-                return hash;
-            }
-#endif
         }
 
         /// <inheritdoc/>
-#if NET6_0_OR_GREATER
         public override bool Equals(object? obj)
-#else
-        public override bool Equals(object obj)
-#endif
         {
             return (obj is AtomString a && a == this) || (obj is string s && s == this);
         }
@@ -107,7 +84,6 @@ namespace AtomReaderNet
         /// </summary>
         public static implicit operator string(AtomString s)
         {
-#if NET6_0_OR_GREATER
             return string.Create(s.chars.Length, s, (span, state) =>
             {
                 for (int i = 0; i < span.Length; i++)
@@ -115,9 +91,6 @@ namespace AtomReaderNet
                     span[i] = state.chars[i].Value;
                 }
             });
-#else
-            return new string((char[])s);
-#endif
         }
 
         /// <summary>
