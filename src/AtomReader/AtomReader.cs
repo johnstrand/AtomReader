@@ -24,13 +24,32 @@ namespace AtomReaderNet
         /// <summary>
         /// Sets the buffer size used for reading, defaults to 4096
         /// </summary>
-        public int BufferSize { get; set; } = 4096;
+        public int BufferSize
+        {
+            get => bufferSize;
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Buffer size must be greater than zero.");
+                }
+                // 128 MB maximum buffer size to prevent OOM DoS
+                if (value > 128 * 1024 * 1024)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Buffer size must not exceed 128MB.");
+                }
+                bufferSize = value;
+            }
+        }
 
+        private int bufferSize = 4096;
         private readonly Queue<Atom> cache = new Queue<Atom>();
         private int line;
         private int column;
+        private char[]? buffer;
 
         private readonly TextReader source;
+        private char[]? _buffer;
 
         /// <summary>
         /// Constructs a reader from a given string
@@ -133,7 +152,12 @@ namespace AtomReaderNet
                 throw new EndOfStreamException();
             }
 
-            var buffer = new char[BufferSize];
+            if (_buffer == null || _buffer.Length != BufferSize)
+            {
+                _buffer = new char[BufferSize];
+            }
+
+            var buffer = _buffer;
 
             var read = source.ReadBlock(buffer, 0, buffer.Length);
             for (var i = 0; i < read; i++)
@@ -143,7 +167,7 @@ namespace AtomReaderNet
 
                 if (buffer[i] == '\r' || buffer[i] == '\n')
                 {
-                    if (buffer[i] == '\r' && i < buffer.Length - 1 && buffer[i + 1] == '\n')
+                    if (buffer[i] == '\r' && i < read - 1 && buffer[i + 1] == '\n')
                     {
                         cache.Enqueue(new Atom(line, column, buffer[++i]));
                     }

@@ -90,9 +90,11 @@ public class AtomStringTests
     [TestMethod]
     public void GetHashCode_Test()
     {
-        var atoms = new[] { new Atom(0, 0, 'h'), new Atom(0, 1, 'i') };
-        var str = new AtomString(atoms);
-        Assert.AreEqual("hi".GetHashCode(), str.GetHashCode());
+        var atoms1 = new[] { new Atom(0, 0, 'h'), new Atom(0, 1, 'i') };
+        var atoms2 = new[] { new Atom(1, 0, 'h'), new Atom(1, 1, 'i') };
+        var str1 = new AtomString(atoms1);
+        var str2 = new AtomString(atoms2);
+        Assert.AreEqual(str1.GetHashCode(), str2.GetHashCode());
     }
 
     [TestMethod]
@@ -108,5 +110,23 @@ public class AtomStringTests
         Assert.IsFalse(str1.Equals("b"));
         Assert.IsFalse(str1.Equals(null));
         Assert.IsFalse(str1.Equals(new object()));
+    }
+
+    [TestMethod]
+    public void ImplicitConversionToString_NullThrows()
+    {
+#pragma warning disable CS8600, CS8604
+        AtomString s = null;
+        Assert.ThrowsExactly<NullReferenceException>(() => { string x = s; });
+#pragma warning restore CS8600, CS8604
+    }
+
+    [TestMethod]
+    public void ImplicitConversionToCharArray_NullThrows()
+    {
+#pragma warning disable CS8600, CS8604
+        AtomString s = null;
+        Assert.ThrowsExactly<NullReferenceException>(() => { char[] x = s; });
+#pragma warning restore CS8600, CS8604
     }
 }

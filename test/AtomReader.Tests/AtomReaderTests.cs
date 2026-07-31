@@ -129,6 +129,15 @@ public class AtomReaderTests
     }
 
     [TestMethod]
+    public void Peek_EmptyStream_ThrowsEndOfStreamException()
+    {
+        using var stream = new MemoryStream();
+        using var reader = new AtomReaderNet.AtomReader(stream);
+
+        Assert.ThrowsExactly<EndOfStreamException>(() => reader.Peek());
+    }
+
+    [TestMethod]
     public void ReadToEnd_ReadsRemainingAtoms()
     {
         var input = "hello";
@@ -208,6 +217,19 @@ public class AtomReaderTests
     }
 
     [TestMethod]
+    public void ReadLine_ExhaustedStream_ReturnsEmpty()
+    {
+        var input = "hello";
+        using var reader = new AtomReaderNet.AtomReader(input);
+
+        var line1 = reader.ReadLine().ToArray();
+        Assert.AreEqual("hello", new string(line1.Select(a => a.Value).ToArray()));
+
+        var line2 = reader.ReadLine().ToArray();
+        Assert.AreEqual(0, line2.Length);
+    }
+
+    [TestMethod]
     public void BufferBoundary_Test()
     {
         var input = "abcdefghijklmnopqrstuvwxyz";
@@ -260,6 +282,14 @@ public class AtomReaderTests
     public void Precache_Empty_ThrowsEndOfStreamException()
     {
         using var reader = new AtomReaderNet.AtomReader("");
+        Assert.ThrowsExactly<EndOfStreamException>(() => reader.Precache());
+    }
+
+    [TestMethod]
+    public void Precache_Exhausted_ThrowsEndOfStreamException()
+    {
+        using var reader = new AtomReaderNet.AtomReader("a");
+        reader.Read();
         Assert.ThrowsExactly<EndOfStreamException>(() => reader.Precache());
     }
 

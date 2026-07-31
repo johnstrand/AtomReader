@@ -1,4 +1,4 @@
-﻿#if !NET6_0_OR_GREATER
+#if !NET6_0_OR_GREATER
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -66,7 +66,24 @@ namespace AtomReaderNet
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return ((string)this).GetHashCode();
+#if NET6_0_OR_GREATER
+            var hash = new HashCode();
+            foreach (var c in chars)
+            {
+                hash.Add(c.Value);
+            }
+            return hash.ToHashCode();
+#else
+            unchecked
+            {
+                int hash = 17;
+                foreach (var c in chars)
+                {
+                    hash = hash * 31 + c.Value.GetHashCode();
+                }
+                return hash;
+            }
+#endif
         }
 
         /// <inheritdoc/>
@@ -88,7 +105,20 @@ namespace AtomReaderNet
         /// <summary>
         /// Converts the AtomString instance to a string
         /// </summary>
-        public static implicit operator string(AtomString s) => new string((char[])s);
+        public static implicit operator string(AtomString s)
+        {
+#if NET6_0_OR_GREATER
+            return string.Create(s.chars.Length, s, (span, state) =>
+            {
+                for (int i = 0; i < span.Length; i++)
+                {
+                    span[i] = state.chars[i].Value;
+                }
+            });
+#else
+            return new string((char[])s);
+#endif
+        }
 
         /// <summary>
         /// Converts the AtomString instance to a char array
@@ -96,7 +126,7 @@ namespace AtomReaderNet
         public static implicit operator char[](AtomString s)
         {
             var result = new char[s.chars.Length];
-            for (int i = 0; i < s.chars.Length; i++)
+            for (int i = 0; i < result.Length; i++)
             {
                 result[i] = s.chars[i].Value;
             }
@@ -104,22 +134,42 @@ namespace AtomReaderNet
         }
 
         /// <summary>
-        /// Converts both instances to string and compares them
+        /// Compares two instances without string allocations
         /// </summary>
-        public static bool operator ==(AtomString a, AtomString b) => ((string)a) == ((string)b);
+        public static bool operator ==(AtomString a, AtomString b)
+        {
+            if (ReferenceEquals(a, b)) return true;
+            if (a is null || b is null) return false;
+            if (a.chars.Length != b.chars.Length) return false;
+            for (int i = 0; i < a.chars.Length; i++)
+            {
+                if (a.chars[i].Value != b.chars[i].Value) return false;
+            }
+            return true;
+        }
 
         /// <summary>
-        /// Converts both instances to string and compares them
+        /// Compares both instances character by character
         /// </summary>
         public static bool operator !=(AtomString a, AtomString b) => !(a == b);
 
         /// <summary>
-        /// Converts the AtomString instance to a string and compares with the other string
+        /// Compares the AtomString instance with the other string without string allocation
         /// </summary>
-        public static bool operator ==(AtomString a, string b) => ((string)a) == b;
+        public static bool operator ==(AtomString a, string b)
+        {
+            if (a is null && b is null) return true;
+            if (a is null || b is null) return false;
+            if (a.chars.Length != b.Length) return false;
+            for (int i = 0; i < a.chars.Length; i++)
+            {
+                if (a.chars[i].Value != b[i]) return false;
+            }
+            return true;
+        }
 
         /// <summary>
-        /// Converts the AtomString instance to a string and compares with the other string
+        /// Compares the AtomString instance to a string character by character
         /// </summary>
         public static bool operator !=(AtomString a, string b) => !(a == b);
     }
