@@ -111,4 +111,22 @@ public class AtomStringTests
         Assert.IsFalse(str1.Equals(null));
         Assert.IsFalse(str1.Equals(new object()));
     }
+
+    [TestMethod]
+    public void ImplicitConversionToString_NullThrows()
+    {
+#pragma warning disable CS8600, CS8604
+        AtomString s = null;
+        Assert.ThrowsExactly<NullReferenceException>(() => { string x = s; });
+#pragma warning restore CS8600, CS8604
+    }
+
+    [TestMethod]
+    public void ImplicitConversionToCharArray_NullThrows()
+    {
+#pragma warning disable CS8600, CS8604
+        AtomString s = null;
+        Assert.ThrowsExactly<NullReferenceException>(() => { char[] x = s; });
+#pragma warning restore CS8600, CS8604
+    }
 }
