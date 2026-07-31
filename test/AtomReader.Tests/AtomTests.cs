@@ -1,4 +1,3 @@
-using System;
 using AtomReaderNet;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
