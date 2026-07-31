@@ -264,6 +264,14 @@ public class AtomReaderTests
     }
 
     [TestMethod]
+    public void Precache_Exhausted_ThrowsEndOfStreamException()
+    {
+        using var reader = new AtomReaderNet.AtomReader("a");
+        reader.Read();
+        Assert.ThrowsExactly<EndOfStreamException>(() => reader.Precache());
+    }
+
+    [TestMethod]
     public void Constructors_Test()
     {
         // stream
