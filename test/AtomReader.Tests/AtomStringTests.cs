@@ -90,9 +90,11 @@ public class AtomStringTests
     [TestMethod]
     public void GetHashCode_Test()
     {
-        var atoms = new[] { new Atom(0, 0, 'h'), new Atom(0, 1, 'i') };
-        var str = new AtomString(atoms);
-        Assert.AreEqual("hi".GetHashCode(), str.GetHashCode());
+        var atoms1 = new[] { new Atom(0, 0, 'h'), new Atom(0, 1, 'i') };
+        var atoms2 = new[] { new Atom(1, 0, 'h'), new Atom(1, 1, 'i') };
+        var str1 = new AtomString(atoms1);
+        var str2 = new AtomString(atoms2);
+        Assert.AreEqual(str1.GetHashCode(), str2.GetHashCode());
     }
 
     [TestMethod]
