@@ -189,6 +189,16 @@ public class AtomReaderTests
     }
 
     [TestMethod]
+    public void ReadLine_EmptyStream_ReturnsEmpty()
+    {
+        var input = "";
+        using var reader = new AtomReaderNet.AtomReader(input);
+
+        var line = reader.ReadLine().ToArray();
+        Assert.AreEqual(0, line.Length);
+    }
+
+    [TestMethod]
     public void BufferBoundary_Test()
     {
         var input = "abcdefghijklmnopqrstuvwxyz";
