@@ -24,8 +24,25 @@ namespace AtomReaderNet
         /// <summary>
         /// Sets the buffer size used for reading, defaults to 4096
         /// </summary>
-        public int BufferSize { get; set; } = 4096;
+        public int BufferSize
+        {
+            get => bufferSize;
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Buffer size must be greater than zero.");
+                }
+                // 128 MB maximum buffer size to prevent OOM DoS
+                if (value > 128 * 1024 * 1024)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Buffer size must not exceed 128MB.");
+                }
+                bufferSize = value;
+            }
+        }
 
+        private int bufferSize = 4096;
         private readonly Queue<Atom> cache = new Queue<Atom>();
         private int line;
         private int column;
