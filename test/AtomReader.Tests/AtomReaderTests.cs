@@ -250,4 +250,30 @@ public class AtomReaderTests
         using var readerTr = new AtomReaderNet.AtomReader(tr);
         Assert.AreEqual("textreader", new string(readerTr.ReadToEnd().Select(a => a.Value).ToArray()));
     }
+
+    [TestMethod]
+    public void Dispose_DisposesUnderlyingSource()
+    {
+        var textReader = new DisposableTextReader("test");
+        var reader = new AtomReaderNet.AtomReader(textReader);
+
+        Assert.IsFalse(textReader.IsDisposed);
+        reader.Dispose();
+        Assert.IsTrue(textReader.IsDisposed);
+    }
+}
+
+public class DisposableTextReader : StringReader
+{
+    public bool IsDisposed { get; private set; }
+
+    public DisposableTextReader(string s) : base(s)
+    {
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        IsDisposed = true;
+        base.Dispose(disposing);
+    }
 }
