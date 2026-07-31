@@ -29,6 +29,7 @@ namespace AtomReaderNet
         private readonly Queue<Atom> cache = new Queue<Atom>();
         private int line;
         private int column;
+        private char[]? buffer;
 
         private readonly TextReader source;
 
@@ -133,7 +134,10 @@ namespace AtomReaderNet
                 throw new EndOfStreamException();
             }
 
-            var buffer = new char[BufferSize];
+            if (buffer == null || buffer.Length != BufferSize)
+            {
+                buffer = new char[BufferSize];
+            }
 
             var read = source.ReadBlock(buffer, 0, buffer.Length);
             for (var i = 0; i < read; i++)
@@ -143,7 +147,7 @@ namespace AtomReaderNet
 
                 if (buffer[i] == '\r' || buffer[i] == '\n')
                 {
-                    if (buffer[i] == '\r' && i < buffer.Length - 1 && buffer[i + 1] == '\n')
+                    if (buffer[i] == '\r' && i < read - 1 && buffer[i + 1] == '\n')
                     {
                         cache.Enqueue(new Atom(line, column, buffer[++i]));
                     }
