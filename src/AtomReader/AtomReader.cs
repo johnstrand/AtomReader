@@ -31,6 +31,7 @@ namespace AtomReaderNet
         private int column;
 
         private readonly TextReader source;
+        private char[]? _buffer;
 
         /// <summary>
         /// Constructs a reader from a given string
@@ -133,7 +134,12 @@ namespace AtomReaderNet
                 throw new EndOfStreamException();
             }
 
-            var buffer = new char[BufferSize];
+            if (_buffer == null || _buffer.Length != BufferSize)
+            {
+                _buffer = new char[BufferSize];
+            }
+
+            var buffer = _buffer;
 
             var read = source.ReadBlock(buffer, 0, buffer.Length);
             for (var i = 0; i < read; i++)
