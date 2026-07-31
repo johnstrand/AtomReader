@@ -133,7 +133,7 @@ namespace AtomReaderNet
         }
 
         /// <summary>
-        /// Converts both instances to string and compares them
+        /// Compares both instances character by character
         /// </summary>
         public static bool operator !=(AtomString a, AtomString b) => !(a == b);
 
@@ -153,7 +153,7 @@ namespace AtomReaderNet
         }
 
         /// <summary>
-        /// Converts the AtomString instance to a string and compares with the other string
+        /// Compares the AtomString instance to a string character by character
         /// </summary>
         public static bool operator !=(AtomString a, string b) => !(a == b);
     }
