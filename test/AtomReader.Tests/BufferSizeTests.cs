@@ -24,7 +24,15 @@ namespace AtomReaderNet.Tests
         public void TooLargeBufferSizeThrows()
         {
             using var reader = new AtomReader("hello");
-            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => reader.BufferSize = (128 * 1024 * 1024) + 1);
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => reader.BufferSize = (2 * 1024 * 1024) + 1);
+        }
+
+        [TestMethod]
+        public void ValidMaxBufferSizeSucceeds()
+        {
+            using var reader = new AtomReader("hello");
+            reader.BufferSize = 2 * 1024 * 1024;
+            Assert.AreEqual(2 * 1024 * 1024, reader.BufferSize);
         }
     }
 }

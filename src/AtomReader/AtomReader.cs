@@ -31,10 +31,10 @@ namespace AtomReaderNet
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), "Buffer size must be greater than zero.");
                 }
-                // 128 MB maximum buffer size to prevent OOM DoS
-                if (value > 128 * 1024 * 1024)
+                // 2 MB maximum buffer size to prevent OOM DoS
+                if (value > 2 * 1024 * 1024)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), "Buffer size must not exceed 128MB.");
+                    throw new ArgumentOutOfRangeException(nameof(value), "Buffer size must not exceed 2MB.");
                 }
                 bufferSize = value;
             }
