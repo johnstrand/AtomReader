@@ -99,7 +99,10 @@ namespace AtomReaderNet
         /// <exception cref="EndOfStreamException">Thrown if attempting to read past the end of data</exception>
         public Atom Peek()
         {
-            EnsureCache();
+            if (cacheCount == 0)
+            {
+                EnsureCache();
+            }
             return cache[cacheHead];
         }
 
@@ -110,7 +113,10 @@ namespace AtomReaderNet
         public Atom Read()
         {
             ReadCount++;
-            EnsureCache();
+            if (cacheCount == 0)
+            {
+                EnsureCache();
+            }
             cacheCount--;
             return cache[cacheHead++];
         }
@@ -121,7 +127,10 @@ namespace AtomReaderNet
         /// <exception cref="EndOfStreamException">Thrown if attempting to read past the end of data</exception>
         public AtomReader Precache()
         {
-            EnsureCache();
+            if (cacheCount == 0)
+            {
+                EnsureCache();
+            }
             return this;
         }
 

@@ -92,10 +92,49 @@ public class AtomStringGetHashCodeBenchmark
     }
 }
 
+[MemoryDiagnoser]
+public class AtomReaderReadBenchmark
+{
+    private string _testString = null!;
+
+    [GlobalSetup]
+    public void Setup()
+    {
+        _testString = new string('a', 100_000);
+    }
+
+    [Benchmark]
+    public int ReadAllAtoms()
+    {
+        using var reader = new AtomReader(_testString);
+        int count = 0;
+        while (!reader.EndOfStream)
+        {
+            reader.Read();
+            count++;
+        }
+        return count;
+    }
+
+    [Benchmark]
+    public int PeekAndReadAtoms()
+    {
+        using var reader = new AtomReader(_testString);
+        int count = 0;
+        while (!reader.EndOfStream)
+        {
+            reader.Peek();
+            reader.Read();
+            count++;
+        }
+        return count;
+    }
+}
+
 public class Program
 {
     public static void Main(string[] args)
     {
-        BenchmarkRunner.Run<AtomReaderBenchmark>();
+        BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
     }
 }
