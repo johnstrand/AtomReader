@@ -12,7 +12,22 @@ namespace AtomReaderNet
         /// <summary>
         /// Returns true of the reader has reached the end of the data
         /// </summary>
-        public bool EndOfStream => cache.Count == 0 && source.Peek() == -1;
+        public bool EndOfStream
+        {
+            get
+            {
+                if (cache.Count > 0)
+                {
+                    return false;
+                }
+                if (isEndOfStream)
+                {
+                    return true;
+                }
+                FillCache();
+                return cache.Count == 0;
+            }
+        }
 
         /// <summary>
         /// Returns the number of characters read (this far)
@@ -44,10 +59,10 @@ namespace AtomReaderNet
         private readonly Queue<Atom> cache = new Queue<Atom>();
         private int line;
         private int column;
-        private char[]? buffer;
 
         private readonly TextReader source;
         private char[]? _buffer;
+        private bool isEndOfStream;
 
         /// <summary>
         /// Constructs a reader from a given string
@@ -149,6 +164,14 @@ namespace AtomReaderNet
             {
                 throw new EndOfStreamException();
             }
+        }
+
+        private void FillCache()
+        {
+            if (isEndOfStream)
+            {
+                return;
+            }
 
             if (_buffer == null || _buffer.Length != BufferSize)
             {
@@ -158,6 +181,12 @@ namespace AtomReaderNet
             var buffer = _buffer;
 
             var read = source.ReadBlock(buffer, 0, buffer.Length);
+            if (read == 0)
+            {
+                isEndOfStream = true;
+                return;
+            }
+
             for (var i = 0; i < read; i++)
             {
                 cache.Enqueue(new Atom(line, column, buffer[i]));

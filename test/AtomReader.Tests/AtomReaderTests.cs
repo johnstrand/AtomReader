@@ -11,6 +11,22 @@ namespace AtomReader.Tests;
 public class AtomReaderTests
 {
     [TestMethod]
+    public void EndOfStream_MultipleCalls_ReturnsSameResult()
+    {
+        var input = "a";
+        using var reader = new AtomReaderNet.AtomReader(input);
+
+        Assert.IsFalse(reader.EndOfStream);
+        Assert.IsFalse(reader.EndOfStream);
+
+        var a = reader.Read();
+        Assert.AreEqual('a', a.Value);
+
+        Assert.IsTrue(reader.EndOfStream);
+        Assert.IsTrue(reader.EndOfStream);
+    }
+
+    [TestMethod]
     public void Read_SingleCharacters_TracksLineAndColumn()
     {
         var input = "abc";
