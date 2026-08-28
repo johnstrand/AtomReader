@@ -144,4 +144,24 @@ public class AtomTests
         Assert.IsFalse(a.Equals(null));
         Assert.IsFalse(a.Equals("x"));
     }
+
+    [TestMethod]
+    public void IEquatable_Atom_Test()
+    {
+        IEquatable<Atom> a = new Atom(1, 2, 'x');
+        Atom b = new Atom(3, 4, 'x');
+        Atom c = new Atom(1, 2, 'y');
+
+        Assert.IsTrue(a.Equals(b));
+        Assert.IsFalse(a.Equals(c));
+    }
+
+    [TestMethod]
+    public void IEquatable_Char_Test()
+    {
+        IEquatable<char> a = new Atom(1, 2, 'x');
+
+        Assert.IsTrue(a.Equals('x'));
+        Assert.IsFalse(a.Equals('y'));
+    }
 }

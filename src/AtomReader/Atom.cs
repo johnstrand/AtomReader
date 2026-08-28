@@ -2,10 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace AtomReaderNet
 {
+    using System;
+
     /// <summary>
     /// Represents a character and its position in a file. Note that any equality comparison will ignore line and column values, and only compare char values
     /// </summary>
-    public readonly struct Atom
+    public readonly struct Atom : IEquatable<Atom>, IEquatable<char>
     {
         /// <summary>
         /// The line from where the Atom was read
@@ -90,10 +92,20 @@ namespace AtomReaderNet
             return Value.GetHashCode();
         }
 
+        /// <summary>
+        /// Indicates whether the current atom is equal to another atom by comparing their character values.
+        /// </summary>
+        public bool Equals(Atom other) => Value == other.Value;
+
+        /// <summary>
+        /// Indicates whether the current atom is equal to a char by comparing its character value.
+        /// </summary>
+        public bool Equals(char other) => Value == other;
+
         /// <inheritdoc/>
         public override bool Equals([NotNullWhen(true)] object? obj)
         {
-            return (obj is Atom a && a.Value == Value) || (obj is char c && c == this);
+            return (obj is Atom a && Equals(a)) || (obj is char c && Equals(c));
         }
 
         /// <inheritdoc/>
