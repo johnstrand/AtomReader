@@ -76,14 +76,16 @@ namespace AtomReaderNet
         /// <inheritdoc/>
         public override string ToString()
         {
-            return (string)this;
+            return ((string?)this)!;
         }
 
         /// <summary>
         /// Converts the AtomString instance to a string
         /// </summary>
-        public static implicit operator string(AtomString s)
+        public static implicit operator string?(AtomString? s)
         {
+            if (s is null) return null;
+
             return string.Create(s.chars.Length, s, (span, state) =>
             {
                 for (int i = 0; i < span.Length; i++)
@@ -96,8 +98,10 @@ namespace AtomReaderNet
         /// <summary>
         /// Converts the AtomString instance to a char array
         /// </summary>
-        public static implicit operator char[](AtomString s)
+        public static implicit operator char[]?(AtomString? s)
         {
+            if (s is null) return null;
+
             var result = new char[s.chars.Length];
             for (int i = 0; i < result.Length; i++)
             {
