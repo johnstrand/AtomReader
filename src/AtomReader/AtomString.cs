@@ -30,6 +30,7 @@ namespace AtomReaderNet
         public int ToColumn { get; } = -1;
 
         private readonly Atom[] chars;
+        private int _hashCode;
 
         /// <summary>
         /// Given a list of atoms, construct an <see cref="AtomString"/> instance
@@ -59,12 +60,17 @@ namespace AtomReaderNet
         /// <inheritdoc/>
         public override int GetHashCode()
         {
+            if (_hashCode != 0) return _hashCode;
+
             var hash = new HashCode();
             foreach (var c in chars)
             {
                 hash.Add(c.Value);
             }
-            return hash.ToHashCode();
+            int h = hash.ToHashCode();
+            if (h == 0) h = 1;
+            _hashCode = h;
+            return h;
         }
 
         /// <inheritdoc/>

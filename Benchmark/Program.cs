@@ -5,36 +5,27 @@ using BenchmarkDotNet.Running;
 namespace Benchmark;
 
 [MemoryDiagnoser]
-public class AtomEqualsBenchmark
+public class AtomStringHashCodeBenchmark
 {
-    private Atom _atom1 = new Atom(1, 1, 'a');
-    private Atom _atom2 = new Atom(1, 2, 'a');
-    private object _atom2Object = new Atom(1, 2, 'a');
-    private char _charVal = 'a';
-    private object _charValObject = 'a';
-
-    [Benchmark(Baseline = true)]
-    public bool EqualsObject_Atom()
+    private AtomString _atomString = new AtomString(new[]
     {
-        return _atom1.Equals(_atom2Object);
-    }
-
-    [Benchmark]
-    public bool EqualsTyped_Atom()
-    {
-        return _atom1.Equals(_atom2);
-    }
+        new Atom(0, 0, 'h'),
+        new Atom(0, 1, 'e'),
+        new Atom(0, 2, 'l'),
+        new Atom(0, 3, 'l'),
+        new Atom(0, 4, 'o'),
+        new Atom(0, 5, ' '),
+        new Atom(0, 6, 'w'),
+        new Atom(0, 7, 'o'),
+        new Atom(0, 8, 'r'),
+        new Atom(0, 9, 'l'),
+        new Atom(0, 10, 'd')
+    });
 
     [Benchmark]
-    public bool EqualsObject_Char()
+    public int GetHashCode_Benchmark()
     {
-        return _atom1.Equals(_charValObject);
-    }
-
-    [Benchmark]
-    public bool EqualsTyped_Char()
-    {
-        return _atom1.Equals(_charVal);
+        return _atomString.GetHashCode();
     }
 }
 
@@ -42,6 +33,6 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        BenchmarkRunner.Run<AtomEqualsBenchmark>();
+        BenchmarkRunner.Run<AtomStringHashCodeBenchmark>();
     }
 }
