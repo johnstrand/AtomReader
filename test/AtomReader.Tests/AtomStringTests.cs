@@ -44,6 +44,27 @@ public class AtomStringTests
     }
 
     [TestMethod]
+    [DataRow(1)]
+    [DataRow(5)]
+    [DataRow(26)]
+    [DataRow(1000)]
+    public void ImplicitConversionToString_LengthHandling(int count)
+    {
+        var atoms = Enumerable.Range(0, count)
+            .Select(i => new Atom(i / 10, i % 10, (char)('a' + (i % 26))))
+            .ToArray();
+
+        var atomStr = new AtomString(atoms);
+        string convertedString = atomStr;
+
+        Assert.AreEqual(count, convertedString.Length);
+        Assert.AreEqual(atomStr.Length, convertedString.Length);
+
+        string expectedString = new string(atoms.Select(a => a.Value).ToArray());
+        Assert.AreEqual(expectedString, convertedString);
+    }
+
+    [TestMethod]
     public void ImplicitConversionToCharArray()
     {
         var atoms = new[] { new Atom(0, 0, 'a'), new Atom(0, 1, 'b') };
