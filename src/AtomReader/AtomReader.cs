@@ -71,6 +71,7 @@ namespace AtomReaderNet
         /// </summary>
         public AtomReader(string source)
         {
+            ArgumentNullException.ThrowIfNull(source);
             this.source = new StringReader(source);
         }
 
@@ -79,6 +80,7 @@ namespace AtomReaderNet
         /// </summary>
         public AtomReader(Stream source)
         {
+            ArgumentNullException.ThrowIfNull(source);
             this.source = new StreamReader(source);
         }
 
@@ -87,6 +89,7 @@ namespace AtomReaderNet
         /// </summary>
         public AtomReader(TextReader source)
         {
+            ArgumentNullException.ThrowIfNull(source);
             this.source = source;
         }
 
