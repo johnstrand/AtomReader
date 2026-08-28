@@ -437,6 +437,105 @@ public class AtomReaderTests
 
         Assert.ThrowsExactly<ObjectDisposedException>(() => reader.Read());
     }
+
+    [TestMethod]
+    public void Read_LargeFile_ReadsAllAtomsAndTracksPositions()
+    {
+        var tempFile = Path.GetTempFileName();
+        try
+        {
+            var lineLength = 50;
+            var numLines = 200; // 200 * 51 chars = 10,200 chars (> 4096 default buffer)
+            var sb = new System.Text.StringBuilder();
+            for (var l = 0; l < numLines; l++)
+            {
+                var lineText = $"Line {l:D4}: " + new string((char)('a' + (l % 26)), lineLength - 11);
+                sb.Append(lineText).Append('\n');
+            }
+            var expectedText = sb.ToString();
+            File.WriteAllText(tempFile, expectedText);
+
+            using var stream = File.OpenRead(tempFile);
+            using var reader = new AtomReaderNet.AtomReader(stream);
+
+            var atoms = reader.ReadToEnd().ToArray();
+
+            Assert.AreEqual(expectedText.Length, atoms.Length);
+            Assert.AreEqual(expectedText.Length, reader.ReadCount);
+            Assert.IsTrue(reader.EndOfStream);
+
+            var readText = new string(atoms.Select(a => a.Value).ToArray());
+            Assert.AreEqual(expectedText, readText);
+
+            var currentLine = 0;
+            var currentColumn = 0;
+            for (var i = 0; i < atoms.Length; i++)
+            {
+                Assert.AreEqual(currentLine, atoms[i].Line, $"Mismatch at index {i}");
+                Assert.AreEqual(currentColumn, atoms[i].Column, $"Mismatch at index {i}");
+
+                if (atoms[i].Value == '\n')
+                {
+                    currentLine++;
+                    currentColumn = 0;
+                }
+                else
+                {
+                    currentColumn++;
+                }
+            }
+        }
+        finally
+        {
+            if (File.Exists(tempFile))
+            {
+                File.Delete(tempFile);
+            }
+        }
+    }
+
+    [TestMethod]
+    public void Read_LargeFile_WithReadLine_ReadsAllLinesCorrectly()
+    {
+        var tempFile = Path.GetTempFileName();
+        try
+        {
+            var numLines = 300;
+            var lines = new string[numLines];
+            for (var l = 0; l < numLines; l++)
+            {
+                lines[l] = $"Line {l:D4}: The quick brown fox jumps over the lazy dog\r\n";
+            }
+            var expectedText = string.Concat(lines);
+            File.WriteAllText(tempFile, expectedText);
+
+            using var stream = File.OpenRead(tempFile);
+            using var reader = new AtomReaderNet.AtomReader(stream);
+
+            var lineCount = 0;
+            while (!reader.EndOfStream)
+            {
+                var lineAtoms = reader.ReadLine().ToArray();
+                if (lineAtoms.Length == 0)
+                {
+                    break;
+                }
+                var lineStr = new string(lineAtoms.Select(a => a.Value).ToArray());
+                Assert.AreEqual(lines[lineCount], lineStr, $"Mismatch at line {lineCount}");
+                lineCount++;
+            }
+
+            Assert.AreEqual(numLines, lineCount);
+            Assert.IsTrue(reader.EndOfStream);
+        }
+        finally
+        {
+            if (File.Exists(tempFile))
+            {
+                File.Delete(tempFile);
+            }
+        }
+    }
 }
 
 public class DisposableTextReader : StringReader
