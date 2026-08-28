@@ -186,6 +186,25 @@ public class AtomStringTests
     }
 
     [TestMethod]
+    public void Operators_Equality_String_NullCheck()
+    {
+#pragma warning disable CS8600, CS8604
+        AtomString nullAtomStr = null;
+        string nullStr = null;
+        var atomStr = new AtomString(new[] { new Atom(0, 0, 'a'), new Atom(0, 1, 'b') });
+
+        Assert.IsTrue(nullAtomStr == nullStr);
+        Assert.IsFalse(nullAtomStr != nullStr);
+
+        Assert.IsFalse(nullAtomStr == "ab");
+        Assert.IsTrue(nullAtomStr != "ab");
+
+        Assert.IsFalse(atomStr == nullStr);
+        Assert.IsTrue(atomStr != nullStr);
+#pragma warning restore CS8600, CS8604
+    }
+
+    [TestMethod]
     public void ToString_Test()
     {
         var atoms = new[] { new Atom(0, 0, 'f'), new Atom(0, 1, 'o'), new Atom(0, 2, 'o') };
