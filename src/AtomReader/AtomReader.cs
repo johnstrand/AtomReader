@@ -44,10 +44,12 @@ namespace AtomReaderNet
         private readonly Queue<Atom> cache = new Queue<Atom>();
         private int line;
         private int column;
-        private char[]? buffer;
 
         private readonly TextReader source;
         private char[]? _buffer;
+        private bool _lastCharWasCr;
+        private int _lastCrLine;
+        private int _lastCrColumn;
 
         /// <summary>
         /// Constructs a reader from a given string
@@ -158,16 +160,37 @@ namespace AtomReaderNet
             var buffer = _buffer;
 
             var read = source.ReadBlock(buffer, 0, buffer.Length);
-            for (var i = 0; i < read; i++)
+
+            var startIndex = 0;
+            if (_lastCharWasCr)
+            {
+                _lastCharWasCr = false;
+                if (read > 0 && buffer[0] == '\n')
+                {
+                    cache.Enqueue(new Atom(_lastCrLine, _lastCrColumn, buffer[0]));
+                    startIndex = 1;
+                }
+            }
+
+            for (var i = startIndex; i < read; i++)
             {
                 cache.Enqueue(new Atom(line, column, buffer[i]));
                 column++;
 
                 if (buffer[i] == '\r' || buffer[i] == '\n')
                 {
-                    if (buffer[i] == '\r' && i < read - 1 && buffer[i + 1] == '\n')
+                    if (buffer[i] == '\r')
                     {
-                        cache.Enqueue(new Atom(line, column, buffer[++i]));
+                        if (i < read - 1 && buffer[i + 1] == '\n')
+                        {
+                            cache.Enqueue(new Atom(line, column, buffer[++i]));
+                        }
+                        else if (i == read - 1)
+                        {
+                            _lastCharWasCr = true;
+                            _lastCrLine = line;
+                            _lastCrColumn = column;
+                        }
                     }
 
                     line++;

@@ -260,6 +260,82 @@ public class AtomReaderTests
     }
 
     [TestMethod]
+    public void BufferBoundary_CRLF_SpanningBuffer_TracksLineAndColumnCorrectly()
+    {
+        var input = "1234\r\n5678";
+        using var reader = new AtomReaderNet.AtomReader(input)
+        {
+            BufferSize = 5
+        };
+
+        var atoms = reader.ReadToEnd().ToArray();
+        Assert.AreEqual(10, atoms.Length);
+
+        // '1', '2', '3', '4'
+        Assert.AreEqual(0, atoms[0].Line); Assert.AreEqual(0, atoms[0].Column); Assert.AreEqual('1', atoms[0].Value);
+        Assert.AreEqual(0, atoms[1].Line); Assert.AreEqual(1, atoms[1].Column); Assert.AreEqual('2', atoms[1].Value);
+        Assert.AreEqual(0, atoms[2].Line); Assert.AreEqual(2, atoms[2].Column); Assert.AreEqual('3', atoms[2].Value);
+        Assert.AreEqual(0, atoms[3].Line); Assert.AreEqual(3, atoms[3].Column); Assert.AreEqual('4', atoms[3].Value);
+
+        // '\r'
+        Assert.AreEqual(0, atoms[4].Line); Assert.AreEqual(4, atoms[4].Column); Assert.AreEqual('\r', atoms[4].Value);
+
+        // '\n' (should be on line 0, column 5, not line 1)
+        Assert.AreEqual(0, atoms[5].Line); Assert.AreEqual(5, atoms[5].Column); Assert.AreEqual('\n', atoms[5].Value);
+
+        // '5' (should be on line 1, column 0)
+        Assert.AreEqual(1, atoms[6].Line); Assert.AreEqual(0, atoms[6].Column); Assert.AreEqual('5', atoms[6].Value);
+        Assert.AreEqual(1, atoms[7].Line); Assert.AreEqual(1, atoms[7].Column); Assert.AreEqual('6', atoms[7].Value);
+        Assert.AreEqual(1, atoms[8].Line); Assert.AreEqual(2, atoms[8].Column); Assert.AreEqual('7', atoms[8].Value);
+        Assert.AreEqual(1, atoms[9].Line); Assert.AreEqual(3, atoms[9].Column); Assert.AreEqual('8', atoms[9].Value);
+    }
+
+    [TestMethod]
+    public void BufferBoundary_CR_FollowedByNonLF_TracksLineAndColumn()
+    {
+        var input = "1234\r5678";
+        using var reader = new AtomReaderNet.AtomReader(input)
+        {
+            BufferSize = 5
+        };
+
+        var atoms = reader.ReadToEnd().ToArray();
+        Assert.AreEqual(9, atoms.Length);
+
+        // '\r' at index 4
+        Assert.AreEqual(0, atoms[4].Line); Assert.AreEqual(4, atoms[4].Column); Assert.AreEqual('\r', atoms[4].Value);
+
+        // '5' at index 5 should be on line 1, column 0
+        Assert.AreEqual(1, atoms[5].Line); Assert.AreEqual(0, atoms[5].Column); Assert.AreEqual('5', atoms[5].Value);
+    }
+
+    [TestMethod]
+    public void BufferBoundary_MultipleSplitCRLF_TracksLineAndColumn()
+    {
+        var input = "a\r\nb\r\nc";
+        using var reader = new AtomReaderNet.AtomReader(input)
+        {
+            BufferSize = 2
+        };
+
+        var atoms = reader.ReadToEnd().ToArray();
+        Assert.AreEqual(7, atoms.Length);
+
+        // 'a', '\r', '\n'
+        Assert.AreEqual(0, atoms[0].Line); Assert.AreEqual(0, atoms[0].Column); Assert.AreEqual('a', atoms[0].Value);
+        Assert.AreEqual(0, atoms[1].Line); Assert.AreEqual(1, atoms[1].Column); Assert.AreEqual('\r', atoms[1].Value);
+        Assert.AreEqual(0, atoms[2].Line); Assert.AreEqual(2, atoms[2].Column); Assert.AreEqual('\n', atoms[2].Value);
+
+        // 'b', '\r', '\n'
+        Assert.AreEqual(1, atoms[3].Line); Assert.AreEqual(0, atoms[3].Column); Assert.AreEqual('b', atoms[3].Value);
+        Assert.AreEqual(1, atoms[4].Line); Assert.AreEqual(1, atoms[4].Column); Assert.AreEqual('\r', atoms[4].Value);
+        Assert.AreEqual(1, atoms[5].Line); Assert.AreEqual(2, atoms[5].Column); Assert.AreEqual('\n', atoms[5].Value);
+
+        // 'c'
+        Assert.AreEqual(2, atoms[6].Line); Assert.AreEqual(0, atoms[6].Column); Assert.AreEqual('c', atoms[6].Value);
+    }
+
+    [TestMethod]
     public void Precache_Test()
     {
         var input = "abcd";
