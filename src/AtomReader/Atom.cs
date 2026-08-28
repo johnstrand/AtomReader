@@ -1,9 +1,8 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace AtomReaderNet
 {
-    using System;
-
     /// <summary>
     /// Represents a character and its position in a file. Note that any equality comparison will ignore line and column values, and only compare char values
     /// </summary>
