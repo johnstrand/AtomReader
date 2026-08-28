@@ -536,6 +536,222 @@ public class AtomReaderTests
             }
         }
     }
+
+    [TestMethod]
+    public void EndOfStream_ExactBufferMultiple_ReturnsCorrectStateAtBoundaries()
+    {
+        var input = "1234567890"; // 10 chars
+        using var reader = new AtomReaderNet.AtomReader(input)
+        {
+            BufferSize = 5
+        };
+
+        Assert.IsFalse(reader.EndOfStream);
+
+        // Read first 4 characters (cache size becomes 1)
+        for (int i = 0; i < 4; i++)
+        {
+            reader.Read();
+            Assert.IsFalse(reader.EndOfStream);
+        }
+
+        // Read 5th character ('5'): cache is now empty, source has "67890" remaining
+        var atom5 = reader.Read();
+        Assert.AreEqual('5', atom5.Value);
+        Assert.IsFalse(reader.EndOfStream);
+
+        // Read 6th character ('6'): cache refilled with 5 chars, 1 consumed, source reached EOF (-1)
+        var atom6 = reader.Read();
+        Assert.AreEqual('6', atom6.Value);
+        Assert.IsFalse(reader.EndOfStream);
+
+        // Read chars 7, 8, 9
+        for (int i = 0; i < 3; i++)
+        {
+            reader.Read();
+            Assert.IsFalse(reader.EndOfStream);
+        }
+
+        // Read 10th character ('0'): cache becomes empty, source is at EOF
+        var atom10 = reader.Read();
+        Assert.AreEqual('0', atom10.Value);
+        Assert.IsTrue(reader.EndOfStream);
+    }
+
+    [TestMethod]
+    public void EndOfStream_BufferBoundaryWithCRLF_AtExactBoundary()
+    {
+        // BufferSize = 5. First block: "1234\r". Second block: "\n5678".
+        var input = "1234\r\n5678";
+        using var reader = new AtomReaderNet.AtomReader(input)
+        {
+            BufferSize = 5
+        };
+
+        Assert.IsFalse(reader.EndOfStream);
+
+        // Read "1234"
+        for (int i = 0; i < 4; i++)
+        {
+            reader.Read();
+            Assert.IsFalse(reader.EndOfStream);
+        }
+
+        // Read '\r' (5th char) - boundary reached, cache empty
+        var cr = reader.Read();
+        Assert.AreEqual('\r', cr.Value);
+        Assert.IsFalse(reader.EndOfStream);
+
+        // Read '\n' (6th char) - cache replenished with "\n5678"
+        var lf = reader.Read();
+        Assert.AreEqual('\n', lf.Value);
+        Assert.IsFalse(reader.EndOfStream);
+
+        // Read "567"
+        for (int i = 0; i < 3; i++)
+        {
+            reader.Read();
+            Assert.IsFalse(reader.EndOfStream);
+        }
+
+        // Read '8' - end of stream reached
+        var last = reader.Read();
+        Assert.AreEqual('8', last.Value);
+        Assert.IsTrue(reader.EndOfStream);
+    }
+
+    [TestMethod]
+    public void EndOfStream_WhenSourceIsStream_ExactBufferBoundary()
+    {
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes("12345678"); // 8 bytes
+        using var stream = new MemoryStream(bytes);
+        using var reader = new AtomReaderNet.AtomReader(stream)
+        {
+            BufferSize = 4
+        };
+
+        Assert.IsFalse(reader.EndOfStream);
+
+        // Read 4 bytes from first buffer
+        for (int i = 0; i < 4; i++)
+        {
+            reader.Read();
+            if (i < 3)
+            {
+                Assert.IsFalse(reader.EndOfStream);
+            }
+        }
+        // At byte 4, cache is empty, but source stream still has 4 bytes
+        Assert.IsFalse(reader.EndOfStream);
+
+        // Read remaining 4 bytes
+        for (int i = 0; i < 4; i++)
+        {
+            reader.Read();
+        }
+
+        Assert.IsTrue(reader.EndOfStream);
+    }
+
+    [TestMethod]
+    public void EndOfStream_PeekAtBufferBoundary()
+    {
+        var input = "abcdef";
+        using var reader = new AtomReaderNet.AtomReader(input)
+        {
+            BufferSize = 3
+        };
+
+        // Read 3 chars ('a', 'b', 'c') to drain first buffer block
+        Assert.AreEqual('a', reader.Read().Value);
+        Assert.AreEqual('b', reader.Read().Value);
+        Assert.AreEqual('c', reader.Read().Value);
+
+        // Cache is now empty, source position is at 'd'
+        Assert.IsFalse(reader.EndOfStream);
+
+        // Peek should load next buffer block ("def") and return 'd'
+        var peeked = reader.Peek();
+        Assert.AreEqual('d', peeked.Value);
+        Assert.IsFalse(reader.EndOfStream);
+
+        // Read remaining
+        Assert.AreEqual('d', reader.Read().Value);
+        Assert.AreEqual('e', reader.Read().Value);
+        Assert.AreEqual('f', reader.Read().Value);
+
+        Assert.IsTrue(reader.EndOfStream);
+    }
+
+    [TestMethod]
+    public void EndOfStream_PrecacheAtBufferBoundary()
+    {
+        var input = "123456";
+        using var reader = new AtomReaderNet.AtomReader(input)
+        {
+            BufferSize = 3
+        };
+
+        // Consume first buffer block
+        for (int i = 0; i < 3; i++)
+        {
+            reader.Read();
+        }
+
+        Assert.IsFalse(reader.EndOfStream);
+
+        // Precache next block
+        reader.Precache();
+        Assert.IsFalse(reader.EndOfStream);
+
+        for (int i = 0; i < 3; i++)
+        {
+            reader.Read();
+        }
+
+        Assert.IsTrue(reader.EndOfStream);
+    }
+
+    [TestMethod]
+    public void EndOfStream_ReadLineAtBufferBoundary()
+    {
+        var input = "abc\ndef\n"; // line 1: 4 chars ("abc\n"), line 2: 4 chars ("def\n")
+        using var reader = new AtomReaderNet.AtomReader(input)
+        {
+            BufferSize = 4
+        };
+
+        Assert.IsFalse(reader.EndOfStream);
+
+        var line1 = reader.ReadLine().ToArray();
+        Assert.AreEqual("abc\n", new string(line1.Select(a => a.Value).ToArray()));
+        Assert.IsFalse(reader.EndOfStream);
+
+        var line2 = reader.ReadLine().ToArray();
+        Assert.AreEqual("def\n", new string(line2.Select(a => a.Value).ToArray()));
+        Assert.IsTrue(reader.EndOfStream);
+    }
+
+    [TestMethod]
+    public void EndOfStream_SingleBuffer_ExactFill()
+    {
+        var input = "abc";
+        using var reader = new AtomReaderNet.AtomReader(input)
+        {
+            BufferSize = 3
+        };
+
+        Assert.IsFalse(reader.EndOfStream);
+
+        Assert.AreEqual('a', reader.Read().Value);
+        Assert.IsFalse(reader.EndOfStream);
+
+        Assert.AreEqual('b', reader.Read().Value);
+        Assert.IsFalse(reader.EndOfStream);
+
+        Assert.AreEqual('c', reader.Read().Value);
+        Assert.IsTrue(reader.EndOfStream);
+    }
 }
 
 public class DisposableTextReader : StringReader
