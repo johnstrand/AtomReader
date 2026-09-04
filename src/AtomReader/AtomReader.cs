@@ -44,7 +44,6 @@ namespace AtomReaderNet
         private readonly Queue<Atom> cache = new Queue<Atom>();
         private int line;
         private int column;
-        private char[]? buffer;
 
         private readonly TextReader source;
         private char[]? _buffer;
