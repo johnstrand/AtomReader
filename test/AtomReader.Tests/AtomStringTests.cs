@@ -98,6 +98,20 @@ public class AtomStringTests
     }
 
     [TestMethod]
+    public void GetHashCode_ReturnsCachedValueOnRepeatedCalls()
+    {
+        var atoms = new[] { new Atom(0, 0, 't'), new Atom(0, 1, 'e'), new Atom(0, 2, 's'), new Atom(0, 3, 't') };
+        var str = new AtomString(atoms);
+
+        int hash1 = str.GetHashCode();
+        int hash2 = str.GetHashCode();
+        int hash3 = str.GetHashCode();
+
+        Assert.AreEqual(hash1, hash2);
+        Assert.AreEqual(hash1, hash3);
+    }
+
+    [TestMethod]
     public void Equals_Test()
     {
         var str1 = new AtomString(new[] { new Atom(0, 0, 'a') });

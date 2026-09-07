@@ -38,10 +38,37 @@ public class AtomEqualsBenchmark
     }
 }
 
+[MemoryDiagnoser]
+public class AtomStringGetHashCodeBenchmark
+{
+    private readonly AtomString _atomString = new AtomString(new[]
+    {
+        new Atom(1, 1, 'H'),
+        new Atom(1, 2, 'e'),
+        new Atom(1, 3, 'l'),
+        new Atom(1, 4, 'l'),
+        new Atom(1, 5, 'o'),
+        new Atom(1, 6, ','),
+        new Atom(1, 7, ' '),
+        new Atom(1, 8, 'W'),
+        new Atom(1, 9, 'o'),
+        new Atom(1, 10, 'r'),
+        new Atom(1, 11, 'l'),
+        new Atom(1, 12, 'd'),
+        new Atom(1, 13, '!')
+    });
+
+    [Benchmark]
+    public int GetHashCode_Repeated()
+    {
+        return _atomString.GetHashCode();
+    }
+}
+
 public class Program
 {
     public static void Main(string[] args)
     {
-        BenchmarkRunner.Run<AtomEqualsBenchmark>();
+        BenchmarkRunner.Run<AtomStringGetHashCodeBenchmark>();
     }
 }
