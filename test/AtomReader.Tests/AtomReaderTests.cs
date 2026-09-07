@@ -317,6 +317,15 @@ public class AtomReaderTests
         reader.Dispose();
         Assert.IsTrue(textReader.IsDisposed);
     }
+
+    [TestMethod]
+    public void Read_DisposedReader_ThrowsObjectDisposedException()
+    {
+        var reader = new AtomReaderNet.AtomReader("test");
+        reader.Dispose();
+
+        Assert.ThrowsExactly<ObjectDisposedException>(() => reader.Read());
+    }
 }
 
 public class DisposableTextReader : StringReader
