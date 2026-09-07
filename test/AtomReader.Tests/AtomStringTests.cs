@@ -190,20 +190,18 @@ public class AtomStringTests
     }
 
     [TestMethod]
-    public void ImplicitConversionToString_NullThrows()
+    public void ImplicitConversionToString_NullReturnsNull()
     {
-#pragma warning disable CS8600, CS8604
-        AtomString s = null;
-        Assert.ThrowsExactly<NullReferenceException>(() => { string x = s; });
-#pragma warning restore CS8600, CS8604
+        AtomString? s = null;
+        string? x = s;
+        Assert.IsNull(x);
     }
 
     [TestMethod]
-    public void ImplicitConversionToCharArray_NullThrows()
+    public void ImplicitConversionToCharArray_NullReturnsNull()
     {
-#pragma warning disable CS8600, CS8604
-        AtomString s = null;
-        Assert.ThrowsExactly<NullReferenceException>(() => { char[] x = s; });
-#pragma warning restore CS8600, CS8604
+        AtomString? s = null;
+        char[]? x = s;
+        Assert.IsNull(x);
     }
 }
