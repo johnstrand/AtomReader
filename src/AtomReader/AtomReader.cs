@@ -56,7 +56,7 @@ namespace AtomReaderNet
         }
 
         private int bufferSize = 4096;
-        private readonly Queue<Atom> cache = new Queue<Atom>();
+        private readonly Queue<Atom> cache = new Queue<Atom>(4096);
         private int line;
         private int column;
 
