@@ -81,6 +81,38 @@ public class AtomTests
     }
 
     [TestMethod]
+    public void ToLower_CultureInvariant_Test()
+    {
+        var originalCulture = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("tr-TR");
+            var atom = new Atom(1, 2, 'I').ToLower();
+            Assert.AreEqual('i', atom.Value);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [TestMethod]
+    public void ToUpper_CultureInvariant_Test()
+    {
+        var originalCulture = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("tr-TR");
+            var atom = new Atom(1, 2, 'i').ToUpper();
+            Assert.AreEqual('I', atom.Value);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [TestMethod]
     public void ToUpper_Test()
     {
         var atom = new Atom(1, 2, 'a').ToUpper();

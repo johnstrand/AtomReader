@@ -77,13 +77,13 @@ namespace AtomReaderNet
         /// <summary>
         /// Converts the atom to lower case, with the same line and column as the original
         /// </summary>
-        public Atom ToLower() => new Atom(Line, Column, char.ToLower(Value));
+        public Atom ToLower() => new Atom(Line, Column, char.ToLowerInvariant(Value));
 
 
         /// <summary>
         /// Converts the atom to upper case, with the same line and column as the original
         /// </summary>
-        public Atom ToUpper() => new Atom(Line, Column, char.ToUpper(Value));
+        public Atom ToUpper() => new Atom(Line, Column, char.ToUpperInvariant(Value));
 
         /// <inheritdoc/>
         public override int GetHashCode()
