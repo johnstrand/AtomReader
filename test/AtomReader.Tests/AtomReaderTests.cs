@@ -310,6 +310,54 @@ public class AtomReaderTests
     }
 
     [TestMethod]
+    public void Precache_InputMatchingBufferSize_PrecachesSuccessfully()
+    {
+        var input = "12345";
+        using var reader = new AtomReaderNet.AtomReader(input)
+        {
+            BufferSize = 5
+        };
+
+        var self = reader.Precache();
+        Assert.AreSame(reader, self);
+
+        // Precache called again when cache is already populated should succeed without error
+        reader.Precache();
+
+        Assert.IsFalse(reader.EndOfStream);
+
+        var result = new string(reader.ReadToEnd().Select(a => a.Value).ToArray());
+        Assert.AreEqual(input, result);
+        Assert.IsTrue(reader.EndOfStream);
+    }
+
+    [TestMethod]
+    public void Precache_ExactMultipleOfBufferSize_PrecachesSuccessfully()
+    {
+        var input = "1234567890";
+        using var reader = new AtomReaderNet.AtomReader(input)
+        {
+            BufferSize = 5
+        };
+
+        // First block
+        reader.Precache();
+        for (int i = 0; i < 5; i++)
+        {
+            Assert.AreEqual(input[i], reader.Read().Value);
+        }
+
+        // Second block matching boundary
+        reader.Precache();
+        for (int i = 5; i < 10; i++)
+        {
+            Assert.AreEqual(input[i], reader.Read().Value);
+        }
+
+        Assert.IsTrue(reader.EndOfStream);
+    }
+
+    [TestMethod]
     public void Constructors_Test()
     {
         // stream
