@@ -405,6 +405,20 @@ public class AtomReaderTests
     }
 
     [TestMethod]
+    public void Constructors_NullSource_ThrowsArgumentNullException()
+    {
+#pragma warning disable CS8600, CS8604
+        string nullString = null;
+        Stream nullStream = null;
+        TextReader nullTextReader = null;
+
+        Assert.ThrowsExactly<ArgumentNullException>(() => new AtomReaderNet.AtomReader(nullString));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new AtomReaderNet.AtomReader(nullStream));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new AtomReaderNet.AtomReader(nullTextReader));
+#pragma warning restore CS8600, CS8604
+    }
+
+    [TestMethod]
     public void Dispose_DisposesUnderlyingSource()
     {
         var textReader = new DisposableTextReader("test");
