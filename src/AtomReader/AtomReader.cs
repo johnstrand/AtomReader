@@ -16,7 +16,7 @@ namespace AtomReaderNet
         {
             get
             {
-                if (cache.Count > 0)
+                if (cacheCount > 0)
                 {
                     return false;
                 }
@@ -25,7 +25,7 @@ namespace AtomReaderNet
                     return true;
                 }
                 FillCache();
-                return cache.Count == 0;
+                return cacheCount == 0;
             }
         }
 
@@ -56,7 +56,9 @@ namespace AtomReaderNet
         }
 
         private int bufferSize = 4096;
-        private readonly Queue<Atom> cache = new Queue<Atom>(4096);
+        private Atom[] cache = Array.Empty<Atom>();
+        private int cacheHead;
+        private int cacheCount;
         private int line;
         private int column;
 
@@ -95,7 +97,7 @@ namespace AtomReaderNet
         public Atom Peek()
         {
             EnsureCache();
-            return cache.Peek();
+            return cache[cacheHead];
         }
 
         /// <summary>
@@ -106,7 +108,8 @@ namespace AtomReaderNet
         {
             ReadCount++;
             EnsureCache();
-            return cache.Dequeue();
+            cacheCount--;
+            return cache[cacheHead++];
         }
 
         /// <summary>
@@ -155,7 +158,7 @@ namespace AtomReaderNet
 
         private void EnsureCache()
         {
-            if (cache.Count > 0)
+            if (cacheCount > 0)
             {
                 return;
             }
@@ -178,6 +181,11 @@ namespace AtomReaderNet
                 _buffer = new char[BufferSize];
             }
 
+            if (cache.Length < BufferSize)
+            {
+                cache = new Atom[BufferSize];
+            }
+
             var buffer = _buffer;
 
             var read = source.ReadBlock(buffer, 0, buffer.Length);
@@ -187,16 +195,19 @@ namespace AtomReaderNet
                 return;
             }
 
+            cacheHead = 0;
+            cacheCount = 0;
+
             for (var i = 0; i < read; i++)
             {
-                cache.Enqueue(new Atom(line, column, buffer[i]));
+                cache[cacheCount++] = new Atom(line, column, buffer[i]);
                 column++;
 
                 if (buffer[i] == '\r' || buffer[i] == '\n')
                 {
                     if (buffer[i] == '\r' && i < read - 1 && buffer[i + 1] == '\n')
                     {
-                        cache.Enqueue(new Atom(line, column, buffer[++i]));
+                        cache[cacheCount++] = new Atom(line, column, buffer[++i]);
                     }
 
                     line++;

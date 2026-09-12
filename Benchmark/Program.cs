@@ -1,8 +1,35 @@
+using System.Linq;
 using AtomReaderNet;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
 namespace Benchmark;
+
+[MemoryDiagnoser]
+public class AtomReaderBenchmark
+{
+    private string _largeText = null!;
+
+    [GlobalSetup]
+    public void Setup()
+    {
+        var lines = Enumerable.Range(0, 50000).Select(i => $"Line {i}: The quick brown fox jumps over the lazy dog.");
+        _largeText = string.Join("\n", lines);
+    }
+
+    [Benchmark]
+    public int ReadAllAtoms()
+    {
+        using var reader = new AtomReaderNet.AtomReader(_largeText);
+        int count = 0;
+        while (!reader.EndOfStream)
+        {
+            var atom = reader.Read();
+            count += atom.Value;
+        }
+        return count;
+    }
+}
 
 [MemoryDiagnoser]
 public class AtomEqualsBenchmark
@@ -69,6 +96,6 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        BenchmarkRunner.Run<AtomStringGetHashCodeBenchmark>();
+        BenchmarkRunner.Run<AtomReaderBenchmark>();
     }
 }
