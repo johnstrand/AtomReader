@@ -204,4 +204,60 @@ public class AtomStringTests
         char[]? x = s;
         Assert.IsNull(x);
     }
+
+    [TestMethod]
+    public void Operators_Equality_StringOnLeft()
+    {
+        var atomStr = new AtomString(new[] { new Atom(0, 0, 'a'), new Atom(0, 1, 'b') });
+
+        Assert.IsTrue("ab" == atomStr);
+        Assert.IsFalse("xy" == atomStr);
+
+        Assert.IsFalse("ab" != atomStr);
+        Assert.IsTrue("xy" != atomStr);
+    }
+
+    [TestMethod]
+    public void Operators_Equality_StringOnLeft_Nulls()
+    {
+#pragma warning disable CS8600, CS8602, CS8604, CS8625
+        AtomString nullAtomStr = null;
+        AtomString atomStr = new AtomString(new[] { new Atom(0, 0, 'a'), new Atom(0, 1, 'b') });
+        string nullStr = null;
+        string str = "ab";
+
+        // Both null
+        Assert.IsTrue(nullStr == nullAtomStr);
+        Assert.IsFalse(nullStr != nullAtomStr);
+
+        // Left null, Right non-null
+        Assert.IsFalse(nullStr == atomStr);
+        Assert.IsTrue(nullStr != atomStr);
+
+        // Left non-null, Right null
+        Assert.IsFalse(str == nullAtomStr);
+        Assert.IsTrue(str != nullAtomStr);
+#pragma warning restore CS8600, CS8602, CS8604, CS8625
+    }
+
+    [TestMethod]
+    public void Equals_StringObject_DoesNotAllocateMemory()
+    {
+        var atomStr = new AtomString(new[] { new Atom(0, 0, 'a'), new Atom(0, 1, 'b') });
+        object strObj = "ab";
+
+        // Warm up GC and JIT
+        _ = atomStr.Equals(strObj);
+
+        long bytesBefore = GC.GetAllocatedBytesForCurrentThread();
+
+        for (int i = 0; i < 1000; i++)
+        {
+            _ = atomStr.Equals(strObj);
+        }
+
+        long bytesAfter = GC.GetAllocatedBytesForCurrentThread();
+
+        Assert.AreEqual(0, bytesAfter - bytesBefore);
+    }
 }
