@@ -160,5 +160,15 @@ namespace AtomReaderNet
         /// Compares the AtomString instance to a string character by character
         /// </summary>
         public static bool operator !=(AtomString a, string b) => !(a == b);
+
+        /// <summary>
+        /// Compares the string with the AtomString instance without string allocation
+        /// </summary>
+        public static bool operator ==(string a, AtomString b) => b == a;
+
+        /// <summary>
+        /// Compares the string to an AtomString instance character by character
+        /// </summary>
+        public static bool operator !=(string a, AtomString b) => !(a == b);
     }
 }
