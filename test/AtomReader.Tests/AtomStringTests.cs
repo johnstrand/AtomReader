@@ -42,6 +42,23 @@ public class AtomStringTests
     }
 
     [TestMethod]
+    [DataRow(0)]
+    [DataRow(1)]
+    [DataRow(42)]
+    public void FromLine_ReturnsFirstAtomLine(int expectedLine)
+    {
+        var atoms = new[]
+        {
+            new Atom(expectedLine, 5, 'x'),
+            new Atom(expectedLine + 1, 0, 'y')
+        };
+
+        var str = new AtomString(atoms);
+
+        Assert.AreEqual(expectedLine, str.FromLine);
+    }
+
+    [TestMethod]
     public void ImplicitConversionToString()
     {
         var atoms = new[] { new Atom(0, 0, 'a'), new Atom(0, 1, 'b') };
