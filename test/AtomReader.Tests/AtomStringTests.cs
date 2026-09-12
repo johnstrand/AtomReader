@@ -151,6 +151,16 @@ public class AtomStringTests
     }
 
     [TestMethod]
+    public void ToString_NullAtomString_ReturnsNull()
+    {
+#pragma warning disable CS8600, CS8602, CS8604, CS8625
+        AtomString s = default;
+        string? result = (string?)s;
+        Assert.IsNull(result);
+#pragma warning restore CS8600, CS8602, CS8604, CS8625
+    }
+
+    [TestMethod]
     public void GetHashCode_Test()
     {
         var atoms1 = new[] { new Atom(0, 0, 'h'), new Atom(0, 1, 'i') };
