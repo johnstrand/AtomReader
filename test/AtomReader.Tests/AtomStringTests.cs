@@ -9,6 +9,14 @@ namespace AtomReader.Tests;
 public class AtomStringTests
 {
     [TestMethod]
+    public void Constructor_NullAtoms_ThrowsArgumentNullException()
+    {
+#pragma warning disable CS8625
+        Assert.ThrowsExactly<ArgumentNullException>(() => new AtomString(null));
+#pragma warning restore CS8625
+    }
+
+    [TestMethod]
     public void Constructor_EmptyThrowsArgumentException()
     {
         Assert.ThrowsExactly<ArgumentException>(() => new AtomString(Array.Empty<Atom>()));
