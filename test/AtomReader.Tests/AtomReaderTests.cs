@@ -27,6 +27,30 @@ public class AtomReaderTests
     }
 
     [TestMethod]
+    public void ReadCount_TracksNumberOfReadCharacters()
+    {
+        var input = "a\r\nbc";
+        using var reader = new AtomReaderNet.AtomReader(input);
+
+        Assert.AreEqual(0, reader.ReadCount);
+
+        reader.Peek();
+        Assert.AreEqual(0, reader.ReadCount);
+
+        reader.Precache();
+        Assert.AreEqual(0, reader.ReadCount);
+
+        _ = reader.Read(); // 'a'
+        Assert.AreEqual(1, reader.ReadCount);
+
+        _ = reader.ReadLine().ToArray(); // consumes '\r\n'
+        Assert.AreEqual(3, reader.ReadCount);
+
+        _ = reader.ReadToEnd().ToArray(); // consumes 'b', 'c'
+        Assert.AreEqual(5, reader.ReadCount);
+    }
+
+    [TestMethod]
     public void Read_SingleCharacters_TracksLineAndColumn()
     {
         var input = "abc";
