@@ -81,7 +81,7 @@ namespace AtomReaderNet
         /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
-            return (obj is AtomString a && a == this) || (obj is string s && s == this);
+            return (obj is AtomString a && a == this) || (obj is string s && this == s);
         }
 
         /// <inheritdoc/>
