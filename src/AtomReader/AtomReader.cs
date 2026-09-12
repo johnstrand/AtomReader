@@ -61,6 +61,9 @@ namespace AtomReaderNet
         private int cacheCount;
         private int line;
         private int column;
+        private bool endsWithCarriageReturn;
+        private int savedCarriageReturnLine;
+        private int savedCarriageReturnColumn;
 
         private readonly TextReader source;
         private char[]? _buffer;
@@ -204,6 +207,7 @@ namespace AtomReaderNet
             if (read == 0)
             {
                 isEndOfStream = true;
+                endsWithCarriageReturn = false;
                 return;
             }
 
@@ -212,14 +216,36 @@ namespace AtomReaderNet
 
             for (var i = 0; i < read; i++)
             {
+                if (i == 0 && endsWithCarriageReturn)
+                {
+                    endsWithCarriageReturn = false;
+                    if (buffer[0] == '\n')
+                    {
+                        cache[cacheCount++] = new Atom(savedCarriageReturnLine, savedCarriageReturnColumn, buffer[0]);
+                        continue;
+                    }
+                }
+
                 cache[cacheCount++] = new Atom(line, column, buffer[i]);
                 column++;
 
                 if (buffer[i] == '\r' || buffer[i] == '\n')
                 {
-                    if (buffer[i] == '\r' && i < read - 1 && buffer[i + 1] == '\n')
+                    if (buffer[i] == '\r')
                     {
-                        cache[cacheCount++] = new Atom(line, column, buffer[++i]);
+                        if (i < read - 1)
+                        {
+                            if (buffer[i + 1] == '\n')
+                            {
+                                cache[cacheCount++] = new Atom(line, column, buffer[++i]);
+                            }
+                        }
+                        else
+                        {
+                            endsWithCarriageReturn = true;
+                            savedCarriageReturnLine = line;
+                            savedCarriageReturnColumn = column;
+                        }
                     }
 
                     line++;
