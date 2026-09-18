@@ -47,7 +47,7 @@ namespace AtomReaderNet
                     throw new ArgumentOutOfRangeException(nameof(value), "Buffer size must be greater than zero.");
                 }
                 // 2 MB maximum buffer size to prevent OOM DoS
-                if (value > 2 * 1024 * 1024)
+                if (value > MaxBufferSize)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), "Buffer size must not exceed 2MB.");
                 }
@@ -55,7 +55,10 @@ namespace AtomReaderNet
             }
         }
 
-        private int bufferSize = 4096;
+        private const int MaxBufferSize = 2 * 1024 * 1024;
+        private const int DefaultBufferSize = 4096;
+
+        private int bufferSize = DefaultBufferSize;
         private Atom[] cache = Array.Empty<Atom>();
         private int cacheHead;
         private int cacheCount;
