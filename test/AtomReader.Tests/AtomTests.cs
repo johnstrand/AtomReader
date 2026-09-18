@@ -16,10 +16,38 @@ public class AtomTests
     }
 
     [TestMethod]
-    public void IsWhiteSpace_Test()
+    [DataRow(' ', true)]
+    [DataRow('\t', true)]
+    [DataRow('\n', true)]
+    [DataRow('\r', true)]
+    [DataRow('\v', true)]
+    [DataRow('\f', true)]
+    [DataRow('\u00A0', true)] // Non-breaking space
+    [DataRow('\u1680', true)] // Ogham space mark
+    [DataRow('\u2000', true)] // En quad
+    [DataRow('\u2001', true)] // Em quad
+    [DataRow('\u2002', true)] // En space
+    [DataRow('\u2003', true)] // Em space
+    [DataRow('\u2004', true)] // Three-per-em space
+    [DataRow('\u2005', true)] // Four-per-em space
+    [DataRow('\u2006', true)] // Six-per-em space
+    [DataRow('\u2007', true)] // Figure space
+    [DataRow('\u2008', true)] // Punctuation space
+    [DataRow('\u2009', true)] // Thin space
+    [DataRow('\u200A', true)] // Hair space
+    [DataRow('\u2028', true)] // Line separator
+    [DataRow('\u2029', true)] // Paragraph separator
+    [DataRow('\u202F', true)] // Narrow no-break space
+    [DataRow('\u205F', true)] // Medium mathematical space
+    [DataRow('\u3000', true)] // Ideographic space
+    [DataRow('a', false)]
+    [DataRow('1', false)]
+    [DataRow('ö', false)]
+    [DataRow('\u200B', false)] // Zero-width space (not categorized as whitespace by Char.IsWhiteSpace)
+    [DataRow('\uFEFF', false)] // Zero-width no-break space / BOM
+    public void IsWhiteSpace_Test(char c, bool expected)
     {
-        Assert.IsTrue(new Atom(0, 0, ' ').IsWhiteSpace);
-        Assert.IsFalse(new Atom(0, 0, 'a').IsWhiteSpace);
+        Assert.AreEqual(expected, new Atom(0, 0, c).IsWhiteSpace);
     }
 
     [TestMethod]
