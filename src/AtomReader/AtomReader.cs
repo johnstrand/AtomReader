@@ -257,7 +257,7 @@ namespace AtomReaderNet
         /// <inheritdoc/>
         public void Dispose()
         {
-            ((IDisposable)source).Dispose();
+            source.Dispose();
         }
     }
 }
