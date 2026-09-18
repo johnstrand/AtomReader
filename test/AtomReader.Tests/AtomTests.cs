@@ -23,10 +23,22 @@ public class AtomTests
     }
 
     [TestMethod]
-    public void IsNumber_Test()
+    [DataRow('0', true)]
+    [DataRow('1', true)]
+    [DataRow('5', true)]
+    [DataRow('9', true)]
+    [DataRow('a', false)]
+    [DataRow('Z', false)]
+    [DataRow(' ', false)]
+    [DataRow('+', false)]
+    [DataRow('½', false)]
+    [DataRow('²', false)]
+    [DataRow('⅓', false)]
+    [DataRow('Ⅴ', false)]
+    [DataRow('١', false)]
+    public void IsNumber_Test(char c, bool expected)
     {
-        Assert.IsTrue(new Atom(0, 0, '1').IsNumber);
-        Assert.IsFalse(new Atom(0, 0, 'a').IsNumber);
+        Assert.AreEqual(expected, new Atom(0, 0, c).IsNumber);
     }
 
     [TestMethod]

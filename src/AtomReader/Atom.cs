@@ -41,7 +41,7 @@ namespace AtomReaderNet
         /// <summary>
         /// Returns true if the Atom represents a number
         /// </summary>
-        public bool IsNumber => char.IsNumber(Value);
+        public bool IsNumber => char.IsAsciiDigit(Value);
 
         /// <summary>
         /// Returns true if the Atom represents an ASCII value
